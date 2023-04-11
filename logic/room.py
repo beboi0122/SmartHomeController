@@ -1,7 +1,7 @@
 
 class Room:
     def __init__(self):
-        self.sensors = {}
+        self.functions = dict()
 
-    def add_sensor(self, sensor_name, sensor):
-        self.sensors[sensor_name] = sensor
+    def add_functions(self, function_name, function):
+        self.functions[function_name] = function

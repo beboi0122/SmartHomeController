@@ -42,21 +42,36 @@
   },
   "smart_home_config": {
     "rooms": {
-      "bath_room_ground_floor": {
-        "hum_and_temp": "bath_ground_dht11",
-        "lighting":{
+      "room1":{
+        "lighting00": {
+          "type": "lighting",
           "pin": "shift_out_0",
           "trigger": "shift_in_0"
         },
-        "ventilation": {
+        "lighting01": {
+          "type": "lighting",
           "pin": "shift_out_1",
-          "trigger": "shift_in_0"
-        }
-      },
-      "room1":{
-        "lighting":{
-          "pin": "shift_out_2",
           "trigger": "shift_in_1"
+        },
+        "lighting02": {
+          "type": "lighting",
+          "pin": "shift_out_2",
+          "trigger": "shift_in_2"
+        },
+        "lighting03": {
+          "type": "lighting",
+          "pin": "shift_out_3",
+          "trigger": "shift_in_3"
+        },
+        "lighting04": {
+          "type": "lighting",
+          "pin": "shift_out_4",
+          "trigger": "shift_in_4"
+        },
+        "lighting15": {
+          "type": "lighting",
+          "pin": "shift_out_15",
+          "trigger": "shift_in_15"
         }
       }
     }

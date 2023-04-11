@@ -1,3 +1,5 @@
+import json
+
 from hardware.sensors.sensor import Sensor
 
 
@@ -7,7 +9,9 @@ class TemperatureAndHumidity(Sensor):
         self.temperature = None
         self.humidity = None
 
-    def update(self, temperature: float, humidity: float):
+    def update(self, json_in: json):
+        temperature: float = json_in[self.name]["temperature"]
+        humidity: float = json_in[self.name]["humidity"]
         if self.humidity is not humidity or self.temperature is not temperature:
             self.temperature = temperature
             self.humidity = humidity
