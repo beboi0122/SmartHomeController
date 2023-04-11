@@ -1,0 +1,65 @@
+{
+  "hardware_config": {
+    "sensors": {
+      "bath_ground_dht11": {
+        "type": "dht11",
+        "pin": 19
+      },
+      "room11_dht11": {
+        "type": "dht11",
+        "pin": 21
+      },
+      "room33_dht11": {
+        "type": "dht11",
+        "pin": 19
+      },
+      "room44_dht11": {
+        "type": "dht11",
+        "pin": 21
+      },
+      "garden_light": {
+        "type": "raw_analog",
+        "pin": 36
+      }
+    },
+    "shift_register_in": {
+      "latch": 26,
+      "data": 35,
+      "clock": 27,
+      "shift_reg_num": 2
+    },
+    "shift_register_out": {
+      "latch": 33,
+      "data": 25,
+      "clock": 32,
+      "shift_reg_num": 2
+    },
+    "servo": {
+      "servo1": {
+        "pin": 2
+      }
+    }
+  },
+  "smart_home_config": {
+    "rooms": {
+      "bath_room_ground_floor": {
+        "hum_and_temp": "bath_ground_dht11",
+        "lighting":{
+          "pin": "shift_out_0",
+          "trigger": "shift_in_0"
+        },
+        "ventilation": {
+          "pin": "shift_out_1",
+          "trigger": "shift_in_0"
+        }
+      },
+      "room1":{
+        "lighting":{
+          "pin": "shift_out_2",
+          "trigger": "shift_in_1"
+        }
+      }
+    }
+
+  }
+}
