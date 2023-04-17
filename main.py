@@ -3,11 +3,13 @@ from logic.lighting import Lighting
 from hardware.shiftregisters.shift_register_in import ShiftRegisterIn
 from smartHome import SmartHome
 
-
+# with open("smarthome.json", "r") as f:
+#     config = json.load(f)
+#
+# breakpoint()
 
 s = SmartHome("smarthome.json")
-
-
+breakpoint()
 
 
 

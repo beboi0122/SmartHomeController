@@ -19,7 +19,7 @@
       },
       "garden_light": {
         "type": "raw_analog",
-        "pin": 36
+        "pin": 34
       }
     },
     "shift_register_in": {
@@ -43,35 +43,59 @@
   "smart_home_config": {
     "rooms": {
       "room1":{
-        "lighting00": {
-          "type": "lighting",
-          "pin": "shift_out_0",
-          "trigger": "shift_in_0"
+        "temperature_and_humidity": "room33_dht11",
+        "temperature_control": {
+          "heating_pin": "shift_out_7",
+          "cooling_pin": "shift_out_8",
+          "target_temperature": 30.0,
+          "hister": 0.5
         },
-        "lighting01": {
-          "type": "lighting",
-          "pin": "shift_out_1",
-          "trigger": "shift_in_1"
+        "ventilation": {
+          "pin": "shift_out_9",
+          "target_humidity": 60,
+          "hister": 5
         },
-        "lighting02": {
-          "type": "lighting",
-          "pin": "shift_out_2",
-          "trigger": "shift_in_2"
-        },
-        "lighting03": {
-          "type": "lighting",
-          "pin": "shift_out_3",
-          "trigger": "shift_in_3"
-        },
-        "lighting04": {
-          "type": "lighting",
-          "pin": "shift_out_4",
-          "trigger": "shift_in_4"
-        },
-        "lighting15": {
-          "type": "lighting",
-          "pin": "shift_out_15",
-          "trigger": "shift_in_15"
+        "functions": {
+          "blinding1": {
+            "type": "blinding",
+            "servo": "servo1",
+            "trigger": "shift_in_5",
+            "lower_state": 0,
+            "higher_state": 180,
+            "sensor": "garden_light",
+            "trigger_val": 350,
+            "hister_val": 50
+          },
+          "lighting00": {
+            "type": "lighting",
+            "pin": "shift_out_0",
+            "trigger": "shift_in_0"
+          },
+          "lighting01": {
+            "type": "lighting",
+            "pin": "shift_out_1",
+            "trigger": "shift_in_1"
+          },
+          "lighting02": {
+            "type": "lighting",
+            "pin": "shift_out_2",
+            "trigger": "shift_in_2"
+          },
+          "lighting03": {
+            "type": "lighting",
+            "pin": "shift_out_3",
+            "trigger": "shift_in_3"
+          },
+          "lighting04": {
+            "type": "lighting",
+            "pin": "shift_out_4",
+            "trigger": "shift_in_4"
+          },
+          "lighting15": {
+            "type": "lighting",
+            "pin": "shift_out_15",
+            "trigger": "shift_in_15"
+          }
         }
       }
     }
