@@ -14,6 +14,10 @@ from logic.room import Room
 from globals import serial_out_buffer
 from logic.temperature_control import TemperatureControl
 from logic.ventilation import Ventilation
+from logic.sensors_for_alarm.pir import Pir
+from logic.sensors_for_alarm.reed_relay import ReadRelay
+from logic.alarm_system import AlarmSystem
+from logic.sensors_for_alarm.alarm_sensor import AlarmSensor
 
 
 class SmartHome:
@@ -30,6 +34,8 @@ class SmartHome:
         self._shift_register_out = None
         self._write_to_serial_thread = threading.Thread(target=self._write_to_serial)
         self._read_from_serial_thread = threading.Thread(target=self._read_from_serial)
+
+        self.alarm_system = None
 
         with open(self._config_file_path, "r") as f:
             config = json.load(f)
@@ -54,8 +60,17 @@ class SmartHome:
         self._serial_port.write(bytes(str(self._hardware_config) + "\n", 'ascii'))
 
     def _load_hardware_config(self):
+        if "shift_register_in" in self._hardware_config:
+            self._shift_register_in = ShiftRegisterIn(
+                latch=self._hardware_config["shift_register_in"]["latch"],
+                data=self._hardware_config["shift_register_in"]["data"],
+                clock=self._hardware_config["shift_register_in"]["clock"],
+                shift_reg_num=self._hardware_config["shift_register_in"]["shift_reg_num"]
+            )
+
         if "sensors" in self._hardware_config:
             for sensor in self._hardware_config["sensors"]:
+
                 if self._hardware_config["sensors"][sensor]["type"] == "dht11":
                     self._sensors[sensor] = TemperatureAndHumidity(
                         pin=self._hardware_config["sensors"][sensor]["pin"],
@@ -66,16 +81,29 @@ class SmartHome:
                         pin=self._hardware_config["sensors"][sensor]["pin"],
                         name=sensor
                     )
+                elif self._hardware_config["sensors"][sensor]["type"] == "digital":
+                    if self._hardware_config["sensors"][sensor]["logical_type"] == "pir":
+                        pin = self._hardware_config["sensors"][sensor]["pin"]
+                        self._sensors[sensor] = Pir(
+                            pin=pin,
+                            name=sensor
+                        )
+                        if "shift_in_" in pin:
+                            p = int(pin.replace("shift_in_", ""))
+                            self._shift_register_in.add(self._sensors[sensor], p)
+                    elif self._hardware_config["sensors"][sensor]["logical_type"] == "reed":
+                        pin = self._hardware_config["sensors"][sensor]["pin"]
+                        self._sensors[sensor] = ReadRelay(
+                            pin=pin,
+                            name=sensor
+                        )
+                        if "shift_in_" in pin:
+                            p = int(pin.replace("shift_in_", ""))
+                            self._shift_register_in.add(self._sensors[sensor], p)
                 else:
                     raise Exception("unknown sensor type")
 
-        if "shift_register_in" in self._hardware_config:
-            self._shift_register_in = ShiftRegisterIn(
-                latch=self._hardware_config["shift_register_in"]["latch"],
-                data=self._hardware_config["shift_register_in"]["data"],
-                clock=self._hardware_config["shift_register_in"]["clock"],
-                shift_reg_num=self._hardware_config["shift_register_in"]["shift_reg_num"]
-            )
+
 
         if "shift_register_out" in self._hardware_config:
             self._shift_register_out = ShiftRegisterOut()
@@ -108,7 +136,8 @@ class SmartHome:
                     self.__setup_blinding(room, function, params)
                 else:
                     print("NO")
-
+        if "alarm_system" in self._smart_home_config:
+            self.__set_up_alarm_system(self._smart_home_config["alarm_system"])
     def _write_to_serial(self):
         while 1:
             if len(serial_out_buffer) > 0:
@@ -123,14 +152,13 @@ class SmartHome:
                     incoming: json = json.loads(self._serial_port.readline().decode().replace("\n", ""))
                 except:
                     continue
-
                 if 'SENSOR_DATA_FROM_ESP32' in incoming:
                     sensor_name = list(incoming['SENSOR_DATA_FROM_ESP32'].keys())[0]
-                    print(incoming['SENSOR_DATA_FROM_ESP32'])
+                    # print(incoming['SENSOR_DATA_FROM_ESP32'])
                     self._sensors[sensor_name].update(incoming['SENSOR_DATA_FROM_ESP32'])
                 elif "INERRUPT_FROM_ESP32" in incoming:
                     self._shift_register_in.update(incoming["INERRUPT_FROM_ESP32"])
-                    print(incoming["INERRUPT_FROM_ESP32"])
+                    # print(incoming["INERRUPT_FROM_ESP32"])
                 elif "CONFIG_FILE_NEEDED" in incoming:
                     self._send_config_to_esp()
                     self._serial_port.flushInput()
@@ -180,6 +208,7 @@ class SmartHome:
             if "shift_in_" in trigger:
                 trigger = int(trigger.replace("shift_in_", ""))
                 self._shift_register_in.add(blinding, trigger)
+            sensor.add(blinding)
 
     def __set_up_room(self, room: json)->Room:
         sensor: TemperatureAndHumidity = None
@@ -208,3 +237,35 @@ class SmartHome:
             ventilation=ventilation
         )
 
+    def __set_up_alarm_system(self, alarm: json):
+        shell_sensors = list()
+        full_sensors = list()
+        siren_pin = alarm["siren"],
+        reset_pin = alarm["reset"],
+        off_mode_pin = alarm["off_mode"],
+        shell_mode_pin = alarm["shell_mode"],
+        full_mode_pin = alarm["full_mode"],
+        for sen_name in alarm["shell_sensors"]:
+            shell_sensors.append(self._sensors[sen_name])
+
+        for sen_name in alarm["full_sensors"]:
+            full_sensors.append(self._sensors[sen_name])
+
+        self.alarm_system = AlarmSystem(
+            siren_pin=siren_pin,
+            reset_pin=reset_pin[0],
+            off_mode_pin=off_mode_pin[0],
+            shell_mode_pin=shell_mode_pin[0],
+            full_mode_pin=full_mode_pin[0],
+            shell_sensors=shell_sensors,
+            full_sensors=full_sensors
+        )
+        self._shift_register_in.add(self.alarm_system, int(reset_pin[0].replace("shift_in_", "")))
+        self._shift_register_in.add(self.alarm_system, int(off_mode_pin[0].replace("shift_in_", "")))
+        self._shift_register_in.add(self.alarm_system, int(shell_mode_pin[0].replace("shift_in_", "")))
+        self._shift_register_in.add(self.alarm_system, int(full_mode_pin[0].replace("shift_in_", "")))
+        for sen in shell_sensors:
+            sen.add(self.alarm_system)
+
+        for sen in full_sensors:
+            sen.add(self.alarm_system)

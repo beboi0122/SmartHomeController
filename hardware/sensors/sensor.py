@@ -2,7 +2,7 @@ from observer_pattern.subject import Subject
 
 
 class Sensor(Subject):
-    def __init__(self, pin: int, name: str):
+    def __init__(self, pin, name: str):
         super().__init__()
         self.pin = pin
         self.name = name

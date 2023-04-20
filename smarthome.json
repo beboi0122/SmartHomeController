@@ -20,6 +20,36 @@
       "garden_light": {
         "type": "raw_analog",
         "pin": 34
+      },
+      "room1_reed1":{
+        "type": "digital",
+        "pin": "shift_in_6",
+        "logical_type": "reed"
+      },
+      "room1_reed2":{
+        "type": "digital",
+        "pin": "shift_in_7",
+        "logical_type": "reed"
+      },
+      "room1_reed3":{
+        "type": "digital",
+        "pin": "shift_in_8",
+        "logical_type": "reed"
+      },
+      "room1_reed4":{
+        "type": "digital",
+        "pin": "shift_in_9",
+        "logical_type": "reed"
+      },
+      "room1_pir1":{
+        "type": "digital",
+        "pin": "shift_in_10",
+        "logical_type": "pir"
+      },
+      "room1_pir2":{
+        "type": "digital",
+        "pin": "shift_in_11",
+        "logical_type": "pir"
       }
     },
     "shift_register_in": {
@@ -63,8 +93,8 @@
             "lower_state": 0,
             "higher_state": 180,
             "sensor": "garden_light",
-            "trigger_val": 350,
-            "hister_val": 50
+            "trigger_val": 1500,
+            "hister_val": 150
           },
           "lighting00": {
             "type": "lighting",
@@ -90,15 +120,20 @@
             "type": "lighting",
             "pin": "shift_out_4",
             "trigger": "shift_in_4"
-          },
-          "lighting15": {
-            "type": "lighting",
-            "pin": "shift_out_15",
-            "trigger": "shift_in_15"
           }
         }
       }
-    }
+    },
+    "alarm_system": {
+      "shell_sensors": ["room1_reed1", "room1_reed2"],
+      "full_sensors": ["room1_reed3", "room1_reed4","room1_pir1", "room1_pir2"],
 
+      "siren": "shift_out_5",
+
+      "reset": "shift_in_12",
+      "off_mode": "shift_in_13",
+      "shell_mode": "shift_in_14",
+      "full_mode": "shift_in_15"
+    }
   }
 }

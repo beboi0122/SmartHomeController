@@ -19,15 +19,15 @@ class Blinding(Observer):
 
     def update(self, *args):
         if self.trigger is not None and self.sensor is None:
-            if args[0] == 1:
+            if args[0][1] == 1:
                 self.__update_via_trigger()
         elif self.trigger is None and self.sensor is not None:
             self.__update_via_sensor()
         elif self.trigger is not None and self.sensor is not None:
             if isinstance(args[0], RawAnalog) and not self.triggered:
                 self.__update_via_sensor()
-            else:
-                if args[0] == 1:
+            elif not isinstance(args[0], RawAnalog):
+                if args[0][1] == 1:
                     if self.triggered:
                         self.triggered = False
                         self.__update_via_sensor()

@@ -22,10 +22,10 @@ class ShiftRegisterIn(Subject):
 
     def notify(self, pin, val):
         for observer in self.observers[pin]:
-            observer.update(val)
+            observer.update(["shift_in_"+str(pin), val])
 
     def update(self, json_in: json):
-        print('call')
+        # print('call')
         for idx, val in enumerate(json_in['shift_register_in']["values"]):
             bitstring = "{0:08b}".format(val)[::-1]
             for j, val in enumerate(bitstring):

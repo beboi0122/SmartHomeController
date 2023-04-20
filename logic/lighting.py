@@ -8,7 +8,8 @@ class Lighting(Observer):
         self.pin = light_pin
         self.light_on: bool = False
 
-    def update(self, pin_value):
+    def update(self, msg):
+        pin_value = msg[1]
         if pin_value == 1:
             self.light_on = not self.light_on
             if "shift_out_" in self.pin:
