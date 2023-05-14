@@ -1,9 +1,10 @@
 from globals import serial_out_buffer
 from observer_pattern.observer import Observer
 from hardware.sensors.temp_and_hum_sen import TemperatureAndHumidity
+from logic.function import Function
 
 
-class Ventilation(Observer):
+class Ventilation(Observer, Function):
     def __init__(self, pin, target_humidity: float, hister: float = 10.0):
         self.pin = pin
         self.target_humidity: float = target_humidity
@@ -26,3 +27,6 @@ class Ventilation(Observer):
                                      + ", 'val': "
                                      + str(int(self.ventilation))
                                      + "}}")
+
+    def status_changed(self, status):
+        print("vent")

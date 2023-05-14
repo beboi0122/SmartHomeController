@@ -72,6 +72,21 @@
   },
   "smart_home_config": {
     "rooms": {
+      "room0": {
+        "temperature_and_humidity": "room11_dht11",
+        "functions": {
+          "lighting00": {
+            "type": "lighting",
+            "pin": "shift_out_0",
+            "trigger": "shift_in_0"
+          },
+          "lighting01": {
+            "type": "lighting",
+            "pin": "shift_out_1",
+            "trigger": "shift_in_1"
+          }
+        }
+      },
       "room1":{
         "temperature_and_humidity": "room33_dht11",
         "temperature_control": {
@@ -95,16 +110,6 @@
             "sensor": "garden_light",
             "trigger_val": 1500,
             "hister_val": 150
-          },
-          "lighting00": {
-            "type": "lighting",
-            "pin": "shift_out_0",
-            "trigger": "shift_in_0"
-          },
-          "lighting01": {
-            "type": "lighting",
-            "pin": "shift_out_1",
-            "trigger": "shift_in_1"
           },
           "lighting02": {
             "type": "lighting",

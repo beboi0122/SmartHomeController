@@ -1,9 +1,12 @@
+import globals
 from globals import serial_out_buffer
+from logic.function import Function
 from observer_pattern.observer import Observer
 from logic.sensors_for_alarm.alarm_sensor import AlarmSensor
 
 
-class AlarmSystem(Observer):
+class AlarmSystem(Observer, Function):
+
     class AlarmSystemMode:
         OFF = 0
         SHELL = 1
@@ -40,18 +43,20 @@ class AlarmSystem(Observer):
             if pin_val == 1:
                 if pin_name == self.off_mode_pin:
                     self.mode = self.AlarmSystemMode.OFF
-                    print("OFF")
+                    globals.state["state"]["alarm_system"]["state"] = "OFF"
                 elif pin_name == self.shell_mode_pin:
                     self.mode = self.AlarmSystemMode.SHELL
-                    print("SHELL")
+                    globals.state["state"]["alarm_system"]["state"] = "SHELL"
                 elif pin_name == self.full_mode_pin:
                     self.mode = self.AlarmSystemMode.FULL
-                    print("FULL")
+                    globals.state["state"]["alarm_system"]["state"] = "FULL"
 
                 self.__reset_alarm()
 
     def __reset_alarm(self):
         self.is_alarm_on = False
+        globals.state["state"]["alarm_system"]["alarm"] = False
+        globals.fireBase.send_state()
         if "shift_out_" in self.siren_pin:
             serial_out_buffer.append("{'SHIFT_OUT_PIN_VAL': {'pin': "
                                      + str(int(self.siren_pin.replace("shift_out_", "")))
@@ -65,6 +70,8 @@ class AlarmSystem(Observer):
 
     def __turn_alarm_on(self):
         print(self.siren_pin)
+        globals.state["state"]["alarm_system"]["alarm"] = True
+        globals.fireBase.send_state()
         self.is_alarm_on = True
         if "shift_out_" in self.siren_pin:
             serial_out_buffer.append("{'SHIFT_OUT_PIN_VAL': {'pin': "
@@ -72,3 +79,16 @@ class AlarmSystem(Observer):
                                      + ", 'val': "
                                      + str(int(self.is_alarm_on))
                                      + "}}")
+
+    def status_changed(self, status):
+        if status == "OFF":
+            self.mode = self.AlarmSystemMode.OFF
+            print("OFF")
+        elif status == "SHELL":
+            self.mode = self.AlarmSystemMode.SHELL
+            print("SHELL")
+        elif status == "FULL":
+            self.mode = self.AlarmSystemMode.FULL
+            print("FULL")
+
+        self.__reset_alarm()

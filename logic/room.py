@@ -17,3 +17,7 @@ class Room:
 
     def add_functions(self, function_name, function):
         self.functions[function_name] = function
+
+    def status_changed(self):
+        for function in self.functions:
+            function.status_changed()
