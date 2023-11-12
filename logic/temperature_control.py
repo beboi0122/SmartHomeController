@@ -22,7 +22,9 @@ class TemperatureControl(Observer, Function):
         self.cooling: bool = False
 
     def update(self, subject: TemperatureAndHumidity):
+        ud = False
         if self.humidity != subject.humidity or self.temperature != subject.temperature:
+            ud = True
             self.temperature = subject.temperature
             self.humidity = subject.humidity
             if self.last_sent is None or False:
@@ -58,7 +60,8 @@ class TemperatureControl(Observer, Function):
         elif not globals.global_heating and self.heating:
             self.heating = False
             self.__set_pin(self.heating_pin, False)
-
+        if ud:
+            globals.fireBase.send_state()
 
     def __set_pin(self, pin, state: bool):
         if "shift_out_" in pin:
@@ -70,3 +73,4 @@ class TemperatureControl(Observer, Function):
 
     def status_changed(self, status):
         print("temp")
+        print(status)

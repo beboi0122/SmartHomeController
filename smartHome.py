@@ -19,6 +19,7 @@ from logic.ventilation import Ventilation
 from logic.sensors_for_alarm.pir import Pir
 from logic.sensors_for_alarm.reed_relay import ReadRelay
 from logic.alarm_system import AlarmSystem
+from logic.electric_door import ElectricDoor
 from logic.sensors_for_alarm.alarm_sensor import AlarmSensor
 
 
@@ -127,6 +128,9 @@ class SmartHome:
                 elif self._smart_home_config["rooms"][room]["functions"][function]["type"] == "blinding":
                     params = self._smart_home_config["rooms"][room]["functions"][function]
                     self.__setup_blinding(room, function, params)
+                elif self._smart_home_config["rooms"][room]["functions"][function]["type"] == "electric_door":
+                    params = self._smart_home_config["rooms"][room]["functions"][function]
+                    self.__setup_electric_door(room, function, params)
                 else:
                     print("NO")
         if "alarm_system" in self._smart_home_config:
@@ -136,6 +140,7 @@ class SmartHome:
             if len(serial_out_buffer) > 0:
                 for _ in range(len(serial_out_buffer)):
                     out = serial_out_buffer.pop(0)
+                    # print(out)
                     self._serial_port.write(bytes(out + "\n", 'ascii'))
 
     def _read_from_serial(self):
@@ -143,6 +148,7 @@ class SmartHome:
             if self._serial_port.inWaiting() > 0:
                 try:
                     incoming: json = json.loads(self._serial_port.readline().decode().replace("\n", ""))
+                    print(incoming)
                 except:
                     continue
                 if 'SENSOR_DATA_FROM_ESP32' in incoming:
@@ -151,7 +157,7 @@ class SmartHome:
                     self._sensors[sensor_name].update(incoming['SENSOR_DATA_FROM_ESP32'])
                 elif "INERRUPT_FROM_ESP32" in incoming:
                     self._shift_register_in.update(incoming["INERRUPT_FROM_ESP32"])
-                    print(incoming["INERRUPT_FROM_ESP32"])
+                    # print(incoming["INERRUPT_FROM_ESP32"])
                 elif "CONFIG_FILE_NEEDED" in incoming:
                     self._send_config_to_esp()
                     self._serial_port.flushInput()
@@ -222,6 +228,22 @@ class SmartHome:
                 trigger = int(trigger.replace("shift_in_", ""))
                 self._shift_register_in.add(blinding, trigger)
             sensor.add(blinding)
+
+    def __setup_electric_door(self, room, function, params):
+        print("__setup_electric_door")
+        trigger = params["trigger"]
+        electric_door = ElectricDoor(
+            room_name=room,
+            function_name=function,
+            trigger=trigger,
+            servo=self._servos[params["servo"]],
+            lower_state=params["lower_state"],
+            higher_state=params["higher_state"]
+        )
+        self.rooms[room].add_functions(function_name=function, function=electric_door)
+        if "shift_in_" in trigger:
+            trigger = int(trigger.replace("shift_in_", ""))
+            self._shift_register_in.add(electric_door, trigger)
 
     def __set_up_room(self, room: json, room_name)->Room:
         sensor: TemperatureAndHumidity = None

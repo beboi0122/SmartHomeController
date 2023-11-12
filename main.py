@@ -47,5 +47,5 @@ globals.fireBase.send_state()
 
 globals.smartHome = SmartHome()
 
-breakpoint()
+
 

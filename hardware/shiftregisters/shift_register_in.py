@@ -20,6 +20,8 @@ class ShiftRegisterIn(Subject):
     def remove(self, observer, pin):
         self.observers[pin].remove(observer)
 
+
+
     def notify(self, pin, val):
         for observer in self.observers[pin]:
             observer.update(["shift_in_"+str(pin), val])

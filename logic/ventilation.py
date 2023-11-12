@@ -19,6 +19,7 @@ class Ventilation(Observer, Function):
         if self.ventilation and subject.humidity < self.target_humidity - self.hister:
             self.ventilation = False
             self.__set_pin()
+        print(f"VENT: {self.ventilation}")
 
     def __set_pin(self):
         if "shift_out_" in self.pin:
@@ -30,3 +31,4 @@ class Ventilation(Observer, Function):
 
     def status_changed(self, status):
         print("vent")
+        print(status)
