@@ -32,3 +32,6 @@ class ElectricDoor(Observer, Function):
         print("set_state")
         globals.state["state"]["rooms"][self.room_name]["functions"][self.function_name]["state"] = False if self.servo.state == self.lower_state else True
         globals.fireBase.send_state()
+
+    def load_state(self):
+        pass

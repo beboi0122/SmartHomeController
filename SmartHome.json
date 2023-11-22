@@ -253,8 +253,8 @@
             "type": "electric_door",
             "servo": "servo2",
             "trigger": "shift_in_1",
-            "lower_state": 6,
-            "higher_state": 106
+            "lower_state": 0,
+            "higher_state": 90
           }
         }
       }

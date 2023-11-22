@@ -35,7 +35,7 @@ class SmartHome:
         self._servos = dict()
         self.rooms = dict()
         self._shift_register_in: ShiftRegisterIn = None
-        self._shift_register_out = None
+        self._shift_register_out: ShiftRegisterOut = None
         self._write_to_serial_thread = threading.Thread(target=self._write_to_serial)
         self._read_from_serial_thread = threading.Thread(target=self._read_from_serial)
 
@@ -52,9 +52,13 @@ class SmartHome:
         self._serial_port.flushInput()
         time.sleep(1)
 
-
         self._write_to_serial_thread.start()
         self._read_from_serial_thread.start()
+
+        self._shift_register_out.write_all_one()
+        self._shift_register_out.write_all_zero()
+
+
 
 
 
@@ -108,8 +112,12 @@ class SmartHome:
 
 
         if "shift_register_out" in self._hardware_config:
-            self._shift_register_out = ShiftRegisterOut()
-            # TODO
+            self._shift_register_out = ShiftRegisterOut(
+                latch=self._hardware_config["shift_register_out"]["latch"],
+                data=self._hardware_config["shift_register_out"]["data"],
+                clock=self._hardware_config["shift_register_out"]["clock"],
+                shift_reg_num=self._hardware_config["shift_register_out"]["shift_reg_num"]
+            )
 
         if "servo" in self._hardware_config:
             for servo in self._hardware_config["servo"]:
@@ -140,7 +148,7 @@ class SmartHome:
             if len(serial_out_buffer) > 0:
                 for _ in range(len(serial_out_buffer)):
                     out = serial_out_buffer.pop(0)
-                    # print(out)
+                    print(out)
                     self._serial_port.write(bytes(out + "\n", 'ascii'))
 
     def _read_from_serial(self):
@@ -148,7 +156,7 @@ class SmartHome:
             if self._serial_port.inWaiting() > 0:
                 try:
                     incoming: json = json.loads(self._serial_port.readline().decode().replace("\n", ""))
-                    print(incoming)
+                    # print(incoming)
                 except:
                     continue
                 if 'SENSOR_DATA_FROM_ESP32' in incoming:
@@ -162,7 +170,11 @@ class SmartHome:
                     self._send_config_to_esp()
                     self._serial_port.flushInput()
                     time.sleep(1)
-                    print(incoming)
+                    self._shift_register_out.write_all_one()
+                    self._shift_register_out.write_all_zero()
+                    for room in self.rooms:
+                        self.rooms[room].load_state()
+                    # print(incoming)
                     # print(data)
 
     def __setup_lighting(self, room, function, params):
@@ -230,7 +242,6 @@ class SmartHome:
             sensor.add(blinding)
 
     def __setup_electric_door(self, room, function, params):
-        print("__setup_electric_door")
         trigger = params["trigger"]
         electric_door = ElectricDoor(
             room_name=room,
@@ -263,6 +274,7 @@ class SmartHome:
             if "ventilation" in room:
                 ventilation = Ventilation(
                     pin=room["ventilation"]["pin"],
+                    room_name=room_name,
                     target_humidity=room["ventilation"]["target_humidity"],
                     hister=room["ventilation"]["hister"]
                 )

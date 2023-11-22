@@ -72,5 +72,7 @@ class TemperatureControl(Observer, Function):
                                      + "}}")
 
     def status_changed(self, status):
-        print("temp")
-        print(status)
+        self.update(globals.smartHome.rooms[self.room_name].temperature_and_humidity_sensor)
+
+    def load_state(self):
+        self.status_changed(None)

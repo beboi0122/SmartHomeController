@@ -6,8 +6,12 @@ class ReadRelay(AlarmSensor):
         super().__init__(pin, name)
 
     def update(self, *args):
-        if args[0][1] == 0 and not self.turn_on_alarm:
-            self.turn_on_alarm = True
-            self.notify()
+        if args[0][1] == 0:
+            self.current_state = True
+            if not self.turn_on_alarm:
+                self.turn_on_alarm = True
+                self.notify()
+        if args[0][1] == 1:
+            self.current_state = False
 
 

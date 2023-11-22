@@ -64,6 +64,8 @@ class Blinding(Observer, Function):
             self.servo.set_state(self.higher_state) if status else self.servo.set_state(self.lower_state)
 
     def set_state(self):
-        print("hello")
         globals.state["state"]["rooms"][self.room_name]["functions"][self.function_name]["state"] = False if self.servo.state == self.lower_state else True
         globals.fireBase.send_state()
+
+    def load_state(self):
+        self.servo.set_state(self.servo.state)

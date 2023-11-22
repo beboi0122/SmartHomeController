@@ -35,3 +35,7 @@ class Lighting(Observer, Function):
     def set_state(self):
         globals.state["state"]["rooms"][self.room_name]["functions"][self.function_name]["state"] = self.light_on
         globals.fireBase.send_state()
+
+    def load_state(self):
+        self.light_on = globals.state["state"]["rooms"][self.room_name]["functions"][self.function_name]["state"]
+        self.set_pin()

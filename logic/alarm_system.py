@@ -83,12 +83,26 @@ class AlarmSystem(Observer, Function):
     def status_changed(self, status):
         if status == "OFF":
             self.mode = self.AlarmSystemMode.OFF
-            print("OFF")
         elif status == "SHELL":
             self.mode = self.AlarmSystemMode.SHELL
-            print("SHELL")
+            for sensor in self.shell_sensors:
+                if sensor.current_state:
+                    self.__turn_alarm_on()
+                    return
         elif status == "FULL":
             self.mode = self.AlarmSystemMode.FULL
-            print("FULL")
+            for sensor in self.shell_sensors:
+                if sensor.current_state:
+                    self.__turn_alarm_on()
+                    return
+            for sensor in self.full_sensors:
+                if sensor.current_state:
+                    self.__turn_alarm_on()
+                    return
 
-        self.__reset_alarm()
+        if status == "OFF" or status == "SHELL" or status == "FULL":
+            self.__reset_alarm()
+
+        def load_state(self):
+            if self.is_alarm_on:
+                self.__turn_alarm_on()
