@@ -8,27 +8,29 @@ import globals
 class Blinding(Observer, Function):
 
     def __init__(self, room_name, function_name, servo: Servo, lower_state: int, higher_state: int,
-                 trigger: int = None, sensor: RawAnalog = None,
-                 trigger_val: int = None, hister_val: int = 100):
+                 trigger: int = None, sensor_in: RawAnalog = None, sensor_out: RawAnalog = None):
+        if sensor_in is not None and sensor_out is None:
+            raise Exception("Both or none of sensor_in and sensor_out must be None")
+        if sensor_in is None and sensor_out is not None:
+            raise Exception("Both or none of sensor_in and sensor_out must be None")
         self.room_name = room_name
         self.function_name = function_name
         self.servo: Servo = servo
         self.trigger: int = trigger
-        self.sensor = sensor
-        self.trigger_val = trigger_val
-        self.hister_val = hister_val
+        self.sensor_in = sensor_in
+        self.sensor_out = sensor_out
         self.lower_state = lower_state
         self.higher_state = higher_state
         servo.set_state(self.lower_state)
         self.triggered = False
 
     def update(self, *args):
-        if self.trigger is not None and self.sensor is None:
+        if self.trigger is not None and self.sensor_in is None:
             if args[0][1] == 1:
                 self.__update_via_trigger()
-        elif self.trigger is None and self.sensor is not None:
+        elif self.trigger is None and self.sensor_in is not None:
             self.__update_via_sensor()
-        elif self.trigger is not None and self.sensor is not None:
+        elif self.trigger is not None and self.sensor_in is not None:
             if isinstance(args[0], RawAnalog) and not self.triggered:
                 self.__update_via_sensor()
             elif not isinstance(args[0], RawAnalog):
@@ -41,11 +43,15 @@ class Blinding(Observer, Function):
                         self.__update_via_trigger()
 
     def __update_via_sensor(self):
-        if self.servo.state == self.lower_state and self.sensor.sensor_value >= self.trigger_val + self.hister_val:
-            self.servo.set_state(self.higher_state)
-            self.set_state()
-        elif self.servo.state == self.higher_state and self.sensor.sensor_value <= self.trigger_val - self.hister_val:
+        if self.sensor_in.sensor_value is None or self.sensor_out.sensor_value is None:
+            return
+        # this means that if the blinds are up and the it's brighter inside than outside, the blinds will go down
+        if (self.servo.state == self.higher_state) and (self.sensor_in.sensor_value > self.sensor_out.sensor_value):
             self.servo.set_state(self.lower_state)
+            self.set_state()
+        # this means that if the blinds are down and the it's darker inside than outside, the blinds will go up
+        elif self.servo.state == self.lower_state and self.sensor_in.sensor_value < self.sensor_out.sensor_value:
+            self.servo.set_state(self.higher_state)
             self.set_state()
 
     def __update_via_trigger(self):

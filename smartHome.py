@@ -60,8 +60,6 @@ class SmartHome:
 
 
 
-
-
     def _send_config_to_esp(self):
         self._serial_port.write(bytes(str(self._hardware_config) + "\n", 'ascii'))
 
@@ -148,7 +146,7 @@ class SmartHome:
             if len(serial_out_buffer) > 0:
                 for _ in range(len(serial_out_buffer)):
                     out = serial_out_buffer.pop(0)
-                    print(out)
+                    # print(out)
                     self._serial_port.write(bytes(out + "\n", 'ascii'))
 
     def _read_from_serial(self):
@@ -156,7 +154,7 @@ class SmartHome:
             if self._serial_port.inWaiting() > 0:
                 try:
                     incoming: json = json.loads(self._serial_port.readline().decode().replace("\n", ""))
-                    # print(incoming)
+                    print(incoming)
                 except:
                     continue
                 if 'SENSOR_DATA_FROM_ESP32' in incoming:
@@ -192,7 +190,11 @@ class SmartHome:
             self._shift_register_in.add(light, trigger)
 
     def __setup_blinding(self, room, function, params):
-        if "trigger" in params and "sensor" not in params:
+        if "sensor_inside" in params and "sensor_outside" not in params:
+            raise Exception("sensor_inside without sensor_outside")
+        if "sensor_inside" not in params and "sensor_outside" in params:
+            raise Exception("sensor_outside without sensor_inside")
+        if "trigger" in params and "sensor_inside" not in params:
             trigger = params["trigger"]
             blinding = Blinding(
                 room_name=room,
@@ -206,23 +208,25 @@ class SmartHome:
             if "shift_in_" in trigger:
                 trigger = int(trigger.replace("shift_in_", ""))
                 self._shift_register_in.add(blinding, trigger)
-        elif "trigger" not in params and "sensor" in params:
-            sensor: RawAnalog = self._sensors[params["sensor"]]
+        elif "trigger" not in params and "sensor_inside" in params:
+            sensor_inside: RawAnalog = self._sensors[params["sensor_inside"]]
+            sensor_outside: RawAnalog = self._sensors[params["sensor_outside"]]
             blinding = Blinding(
                 room_name=room,
                 function_name=function,
                 servo=self._servos[params["servo"]],
                 lower_state=params["lower_state"],
                 higher_state=params["higher_state"],
-                sensor=sensor,
-                hister_val=params["hister_val"],
-                trigger_val=params["trigger_val"]
+                sensor_in=sensor_inside,
+                sensor_out=sensor_outside
             )
             self.rooms[room].add_functions(function_name=function, function=blinding)
-            sensor.add(blinding)
-        elif "trigger" in params and "sensor" in params:
+            sensor_inside.add(blinding)
+            sensor_outside.add(blinding)
+        elif "trigger" in params and "sensor_inside" in params:
             trigger = params["trigger"]
-            sensor: RawAnalog = self._sensors[params["sensor"]]
+            sensor_inside: RawAnalog = self._sensors[params["sensor_inside"]]
+            sensor_outside: RawAnalog = self._sensors[params["sensor_outside"]]
             blinding = Blinding(
                 room_name=room,
                 function_name=function,
@@ -230,16 +234,16 @@ class SmartHome:
                 servo=self._servos[params["servo"]],
                 lower_state=params["lower_state"],
                 higher_state=params["higher_state"],
-                sensor=sensor,
-                hister_val=params["hister_val"],
-                trigger_val=params["trigger_val"]
+                sensor_in=sensor_inside,
+                sensor_out=sensor_outside
             )
             self.rooms[room].add_functions(function_name=function, function=blinding)
 
             if "shift_in_" in trigger:
                 trigger = int(trigger.replace("shift_in_", ""))
                 self._shift_register_in.add(blinding, trigger)
-            sensor.add(blinding)
+            sensor_inside.add(blinding)
+            sensor_outside.add(blinding)
 
     def __setup_electric_door(self, room, function, params):
         trigger = params["trigger"]
