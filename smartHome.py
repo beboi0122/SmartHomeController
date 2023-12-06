@@ -146,7 +146,7 @@ class SmartHome:
             if len(serial_out_buffer) > 0:
                 for _ in range(len(serial_out_buffer)):
                     out = serial_out_buffer.pop(0)
-                    # print(out)
+                    print(out)
                     self._serial_port.write(bytes(out + "\n", 'ascii'))
 
     def _read_from_serial(self):

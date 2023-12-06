@@ -102,7 +102,6 @@ class Firebase:
         self.doc_watch = self.interrupt_doc_ref.on_snapshot(self.on_snapshot)
 
     def notofy_function(self, user_interrupt):
-        # print(user_interrupt)
         globals.smartHome.rooms[user_interrupt["room"]].functions[user_interrupt["function"]].status_changed(user_interrupt["state"])
 
 
